@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: chiqindi-platform
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn chiqindi_project.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: DEBUG
+        value: "False"
