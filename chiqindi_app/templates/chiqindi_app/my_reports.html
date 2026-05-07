@@ -1,0 +1,45 @@
+{% extends 'chiqindi_app/base.html' %}
+{% block title %}Mening xabarlarim{% endblock %}
+{% block content %}
+<h4 class="mb-4"><i class="bi bi-list-ul me-2"></i>{% if is_authority %}Tayinlangan xabarlarim{% else %}Mening xabarlarim{% endif %}</h4>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Chiqindi turi</th>
+                    <th>Hudud</th>
+                    <th>Hajmi</th>
+                    <th>Holati</th>
+                    <th>Sana</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <td>#{{ report.pk }}</td>
+                    <td>{{ report.get_waste_type_display }}</td>
+                    <td>{{ report.get_viloyat_display }} – {{ report.tuman }}</td>
+                    <td>{{ report.get_size_display }}</td>
+                    <td><span class="status-badge status-{{ report.status }}">{{ report.get_status_display }}</span></td>
+                    <td><small>{{ report.created_at|date:"d.m.Y H:i" }}</small></td>
+                    <td>
+                        <a href="{% url 'report_detail' report.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                        {% if not is_authority and report.status == 'kutilmoqda' %}
+                        <a href="{% url 'edit_report' report.pk %}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-5">
+                    {% if is_authority %}Sizga tayinlangan xabarlar yo'q{% else %}Siz hali xabar yubormagansiz{% endif %}
+                    {% if not is_authority %}<br><a href="{% url 'create_report' %}" class="btn btn-success btn-sm mt-3">Xabar yuborish</a>{% endif %}
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

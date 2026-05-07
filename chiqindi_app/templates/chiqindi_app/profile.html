@@ -1,0 +1,58 @@
+{% extends 'chiqindi_app/base.html' %}
+{% block title %}Profil{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-person-circle me-2"></i>Profil ma'lumotlari</div>
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-success text-white"
+                         style="width:80px;height:80px;font-size:2rem;font-weight:700">
+                        {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+                    </div>
+                    <h5 class="mt-3">{{ user.get_full_name|default:user.username }}</h5>
+                    <span class="badge {% if user.is_citizen %}bg-primary{% else %}bg-warning text-dark{% endif %}">
+                        {{ user.get_role_display }}
+                    </span>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Ism</label>
+                            <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Familiya</label>
+                            <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ user.email }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Telefon</label>
+                            <input type="text" name="phone" class="form-control" value="{{ user.phone }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-3">
+                        <i class="bi bi-save me-2"></i>Saqlash
+                    </button>
+                </form>
+                <hr>
+                <div class="row text-center">
+                    <div class="col">
+                        <div class="fw-bold text-primary">{{ user.reports.count }}</div>
+                        <div class="small text-muted">Xabarlar</div>
+                    </div>
+                    <div class="col">
+                        <div class="fw-bold text-success">{{ user.date_joined|date:"d.m.Y" }}</div>
+                        <div class="small text-muted">Qo'shilgan</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

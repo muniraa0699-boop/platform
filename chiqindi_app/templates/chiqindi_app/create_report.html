@@ -1,0 +1,153 @@
+{% extends 'chiqindi_app/base.html' %}
+{% block title %}{% if edit_mode %}Xabarni tahrirlash{% else %}Chiqindi xabari yuborish{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-geo-alt-fill me-2"></i>
+                {% if edit_mode %}Xabarni tahrirlash #{{ report.pk }}{% else %}Chiqindi joyi haqida xabar yuborish{% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- Map picker -->
+                    <div class="col-lg-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-map me-1"></i>Xaritada nuqtani belgilang</label>
+                        <div id="picker-map" style="height:380px;border-radius:10px;border:2px solid #e2e8f0;" class="mb-2"></div>
+                        <div id="coord-display" class="small text-muted">
+                            <i class="bi bi-crosshair me-1"></i>
+                            <span id="lat-display">—</span>, <span id="lng-display">—</span>
+                        </div>
+                        <div class="alert alert-info py-2 mt-2 small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Xaritada chiqindi joylashgan nuqtani bosing.
+                        </div>
+                    </div>
+
+                    <!-- Form -->
+                    <div class="col-lg-6">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ form.latitude }}
+                            {{ form.longitude }}
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Chiqindi turi *</label>
+                                {{ form.waste_type }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Taxminiy hajmi *</label>
+                                {{ form.size }}
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">Viloyat *</label>
+                                    {{ form.viloyat }}
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">Tuman</label>
+                                    <select name="tuman" id="id_tuman" class="form-select">
+                                        <option value="">-- Tuman --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Manzil (ko'cha, uy)</label>
+                                {{ form.address }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Izoh</label>
+                                {{ form.description }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Rasm (ixtiyoriy)</label>
+                                {{ form.image }}
+                            </div>
+
+                            {% if form.errors %}
+                            <div class="alert alert-danger">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}<div>{{ error }}</div>{% endfor %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <button type="submit" class="btn btn-success w-100" id="submit-btn">
+                                <i class="bi bi-send-fill me-2"></i>
+                                {% if edit_mode %}Saqlash{% else %}Xabar yuborish{% endif %}
+                            </button>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary w-100 mt-2">Bekor qilish</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const tumanlar = {{ tumanlar_json|safe }};
+const initLat = parseFloat('{{ form.latitude.value|default:"41.2995" }}') || 41.2995;
+const initLng = parseFloat('{{ form.longitude.value|default:"69.2401" }}') || 69.2401;
+const hasPoint = initLat !== 41.2995 || initLng !== 69.2401;
+
+const map = L.map('picker-map', {preferCanvas: true}).setView([initLat, initLng], hasPoint ? 15 : 6);
+const osmT = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19, crossOrigin:true});
+const cartoT = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {attribution:'© CARTO', subdomains:'abcd', maxZoom:19, crossOrigin:true});
+osmT.addTo(map);
+osmT.on('tileerror', function(){ if(map.hasLayer(osmT)){map.removeLayer(osmT); cartoT.addTo(map);} });
+setTimeout(function(){ if(document.getElementById('picker-map').querySelectorAll('.leaflet-tile-loaded').length===0){if(map.hasLayer(osmT))map.removeLayer(osmT); cartoT.addTo(map);} }, 3000);
+
+let marker = null;
+if (hasPoint) {
+    marker = L.marker([initLat, initLng]).addTo(map);
+    document.getElementById('lat-display').textContent = initLat.toFixed(5);
+    document.getElementById('lng-display').textContent = initLng.toFixed(5);
+}
+
+map.on('click', function(e) {
+    const lat = e.latlng.lat.toFixed(6);
+    const lng = e.latlng.lng.toFixed(6);
+    document.getElementById('id_latitude').value = lat;
+    document.getElementById('id_longitude').value = lng;
+    document.getElementById('lat-display').textContent = lat;
+    document.getElementById('lng-display').textContent = lng;
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lng]).addTo(map);
+});
+
+// Tuman dropdown
+const viloyatSelect = document.getElementById('id_viloyat');
+const tumanSelect = document.getElementById('id_tuman');
+const currentTuman = '{{ form.tuman.value|default:"" }}';
+
+function updateTumanlar() {
+    const v = viloyatSelect.value;
+    tumanSelect.innerHTML = '<option value="">-- Tuman --</option>';
+    if (tumanlar[v]) {
+        tumanlar[v].forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            if (t === currentTuman) opt.selected = true;
+            tumanSelect.appendChild(opt);
+        });
+    }
+}
+viloyatSelect.addEventListener('change', updateTumanlar);
+updateTumanlar();
+
+// Validation
+document.getElementById('submit-btn').addEventListener('click', function(e) {
+    const lat = document.getElementById('id_latitude').value;
+    const lng = document.getElementById('id_longitude').value;
+    if (!lat || !lng) {
+        e.preventDefault();
+        alert("Iltimos, xaritada chiqindi joyini belgilang!");
+    }
+});
+</script>
+{% endblock %}

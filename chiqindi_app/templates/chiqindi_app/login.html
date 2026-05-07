@@ -1,0 +1,42 @@
+{% extends 'chiqindi_app/base.html' %}
+{% block title %}Kirish – Chiqindi Platform{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5 col-sm-8">
+        <div class="card">
+            <div class="card-header bg-dark text-white text-center py-3">
+                <i class="bi bi-box-arrow-in-right me-2" style="font-size:1.5rem"></i>
+                <div class="fw-bold fs-5">Tizimga kirish</div>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Foydalanuvchi nomi</label>
+                        <input type="text" name="username" class="form-control" placeholder="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Parol</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+                    </button>
+                </form>
+                <hr>
+                <div class="text-center">
+                    <small class="text-muted">Hisobingiz yo'qmi?</small>
+                    <a href="{% url 'register' %}" class="btn btn-outline-success btn-sm ms-2">Ro'yxatdan o'tish</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body py-2 px-3">
+                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>
+                <b>Test hisoblar:</b> fuqaro1 / fuqaro123 | hokimiyat1 / hokimiyat123 | admin / admin123</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

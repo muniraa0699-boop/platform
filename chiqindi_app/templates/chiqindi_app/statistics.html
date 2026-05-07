@@ -1,0 +1,94 @@
+{% extends 'chiqindi_app/base.html' %}
+{% block title %}Statistika – Chiqindi Platform{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<h4 class="mb-4"><i class="bi bi-bar-chart-fill me-2"></i>Statistika va hisobot</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+            <div class="number">{{ total }}</div>
+            <div class="label">Jami xabarlar</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
+            <div class="number">{{ pending }}</div>
+            <div class="label">Kutilmoqda</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+            <div class="number">{{ in_progress }}</div>
+            <div class="label">Jarayonda</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
+            <div class="number">{{ done }}</div>
+            <div class="label">Tozalandi</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-pie-chart me-2"></i>Holat bo'yicha</div>
+            <div class="card-body"><canvas id="statusChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-bar-chart me-2"></i>Chiqindi turi bo'yicha</div>
+            <div class="card-body"><canvas id="typeChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-geo-alt me-2"></i>Viloyat bo'yicha</div>
+            <div class="card-body"><canvas id="regionChart"></canvas></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const typeData = {{ chart_type|safe }};
+const viloyatData = {{ chart_viloyat|safe }};
+const statusData = {{ chart_status|safe }};
+
+const COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6'];
+
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: statusData.map(d=>d.label),
+        datasets: [{data: statusData.map(d=>d.count), backgroundColor: COLORS}]
+    },
+    options: {plugins:{legend:{position:'bottom'}}}
+});
+
+new Chart(document.getElementById('typeChart'), {
+    type: 'bar',
+    data: {
+        labels: typeData.map(d=>d.label),
+        datasets: [{label:'Xabarlar', data: typeData.map(d=>d.count), backgroundColor: '#16a34a'}]
+    },
+    options: {plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+});
+
+new Chart(document.getElementById('regionChart'), {
+    type: 'bar',
+    data: {
+        labels: viloyatData.map(d=>d.label),
+        datasets: [{label:'Xabarlar', data: viloyatData.map(d=>d.count), backgroundColor: '#3b82f6'}]
+    },
+    options: {indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}}
+});
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'chiqindi_app/base.html' %}
+{% block title %}Boshqaruv paneli – Chiqindi Platform{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-shield-check me-2 text-primary"></i>Hokimiyat boshqaruv paneli</h4>
+    <a href="{% url 'export_csv' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-download me-1"></i>CSV yuklash
+    </a>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+            <div class="number">{{ stats.total }}</div>
+            <div class="label">Jami xabarlar</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
+            <div class="number">{{ stats.pending }}</div>
+            <div class="label">Kutilmoqda</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+            <div class="number">{{ stats.in_progress }}</div>
+            <div class="label">Jarayonda</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
+            <div class="number">{{ stats.done }}</div>
+            <div class="label">Tozalandi</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                {{ filter_form.viloyat }}
+            </div>
+            <div class="col-md-3">
+                {{ filter_form.status }}
+            </div>
+            <div class="col-md-3">
+                {{ filter_form.waste_type }}
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i>Filtr</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reports Table -->
+<div class="card">
+    <div class="card-header"><i class="bi bi-list-ul me-2"></i>Barcha xabarlar ({{ reports|length }})</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Fuqaro</th>
+                    <th>Hudud</th>
+                    <th>Chiqindi turi</th>
+                    <th>Hajmi</th>
+                    <th>Holati</th>
+                    <th>Sana</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <td><span class="text-muted">#</span>{{ report.pk }}</td>
+                    <td>
+                        <div class="fw-semibold">{{ report.citizen.get_full_name|default:report.citizen.username }}</div>
+                        <small class="text-muted">{{ report.citizen.phone }}</small>
+                    </td>
+                    <td>
+                        <div>{{ report.get_viloyat_display }}</div>
+                        <small class="text-muted">{{ report.tuman }}</small>
+                    </td>
+                    <td>{{ report.get_waste_type_display }}</td>
+                    <td>{{ report.get_size_display }}</td>
+                    <td>
+                        <span class="status-badge status-{{ report.status }}">{{ report.get_status_display }}</span>
+                    </td>
+                    <td><small>{{ report.created_at|date:"d.m.Y" }}</small></td>
+                    <td>
+                        <a href="{% url 'report_detail' report.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-5">Hozircha xabarlar yo'q</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

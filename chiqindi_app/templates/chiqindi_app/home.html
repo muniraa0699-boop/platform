@@ -1,0 +1,246 @@
+{% extends 'chiqindi_app/base.html' %}
+{% block title %}Bosh sahifa – Chiqindi Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="stat-card" style="background: linear-gradient(135deg,#ef4444,#dc2626)">
+            <div class="number">{{ total }}</div>
+            <div class="label"><i class="bi bi-collection me-1"></i>Jami xabarlar</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card" style="background: linear-gradient(135deg,#f59e0b,#d97706)">
+            <div class="number">{{ pending }}</div>
+            <div class="label"><i class="bi bi-clock me-1"></i>Kutilmoqda</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card" style="background: linear-gradient(135deg,#3b82f6,#2563eb)">
+            <div class="number">{{ in_progress }}</div>
+            <div class="label"><i class="bi bi-arrow-repeat me-1"></i>Jarayonda</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card" style="background: linear-gradient(135deg,#22c55e,#16a34a)">
+            <div class="number">{{ done }}</div>
+            <div class="label"><i class="bi bi-check-circle me-1"></i>Tozalandi</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Map -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-map-fill me-2"></i>Chiqindi xaritasi</span>
+                <div>
+                    <span class="badge" style="background:#ef4444">● Kutilmoqda</span>
+                    <span class="badge ms-1" style="background:#f97316">● Jarayonda</span>
+                    <span class="badge ms-1" style="background:#22c55e">● Tozalandi</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="map" style="height: 450px; width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-funnel me-2"></i>Filtr</div>
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <div class="col-md-3 col-6">
+                        <select name="viloyat" class="form-select form-select-sm">
+                            <option value="">Barcha viloyatlar</option>
+                            {% for code, name in viloyatlar %}<option value="{{ code }}" {% if request.GET.viloyat == code %}selected{% endif %}>{{ name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <input type="text" name="tuman" class="form-control form-control-sm" placeholder="Tuman" value="{{ request.GET.tuman }}">
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="">Holati</option>
+                            <option value="kutilmoqda" {% if request.GET.status == 'kutilmoqda' %}selected{% endif %}>Kutilmoqda</option>
+                            <option value="qabul_qilindi" {% if request.GET.status == 'qabul_qilindi' %}selected{% endif %}>Qabul qilindi</option>
+                            <option value="jarayonda" {% if request.GET.status == 'jarayonda' %}selected{% endif %}>Jarayonda</option>
+                            <option value="tozalanmoqda" {% if request.GET.status == 'tozalanmoqda' %}selected{% endif %}>Tozalanmoqda</option>
+                            <option value="tozalandi" {% if request.GET.status == 'tozalandi' %}selected{% endif %}>Tozalandi</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <select name="waste_type" class="form-select form-select-sm">
+                            <option value="">Turi</option>
+                            <option value="uy">Uy</option>
+                            <option value="qurilish">Qurilish</option>
+                            <option value="plastik">Plastik</option>
+                            <option value="xavfli">Xavfli</option>
+                            <option value="boshqa">Boshqa</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search me-1"></i>Qidirish</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div class="col-lg-4">
+        {% if user.is_authenticated and user.is_citizen %}
+        <div class="card mb-3" style="border: 2px solid var(--primary)">
+            <div class="card-body text-center">
+                <i class="bi bi-plus-circle-fill text-success" style="font-size:2.5rem"></i>
+                <h6 class="mt-2 mb-3">Chiqindi joyini xaritada belgilang</h6>
+                <a href="{% url 'create_report' %}" class="btn btn-primary w-100">
+                    <i class="bi bi-geo-alt-fill me-2"></i>Chiqindi xabari yuborish
+                </a>
+            </div>
+        </div>
+        {% elif not user.is_authenticated %}
+        <div class="card mb-3" style="background: linear-gradient(135deg,#0f172a,#1e293b)">
+            <div class="card-body text-center text-white">
+                <i class="bi bi-person-plus-fill" style="font-size:2.5rem;color:#22c55e"></i>
+                <h6 class="mt-2 mb-3">Chiqindi haqida xabar berish uchun kirish zarur</h6>
+                <a href="{% url 'register' %}" class="btn btn-success w-100 mb-2">Ro'yxatdan o'tish</a>
+                <a href="{% url 'login' %}" class="btn btn-outline-light w-100 btn-sm">Kirish</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Top regions -->
+        {% if top_regions %}
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-geo me-2"></i>Eng ko'p xabar (hudud)</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for r in top_regions %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <small>{{ r.viloyat }}</small>
+                        <span class="badge bg-danger rounded-pill">{{ r.count }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent reports -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <span><i class="bi bi-clock-history me-2"></i>So'nggi xabarlar</span>
+                <a href="{% url 'statistics' %}" class="small text-muted">Barchasi</a>
+            </div>
+            <div class="card-body p-0">
+                {% for report in recent_reports %}
+                <a href="{% url 'report_detail' report.pk %}" class="text-decoration-none">
+                <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-start">
+                    <div>
+                        <small class="fw-semibold text-dark">{{ report.get_waste_type_display }}</small>
+                        <div class="text-muted" style="font-size:.75rem">{{ report.tuman }} {{ report.get_viloyat_display }}</div>
+                        <div class="text-muted" style="font-size:.7rem">{{ report.created_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                    <span class="status-badge status-{{ report.status }} ms-2 text-nowrap" style="font-size:.7rem">
+                        {{ report.get_status_display }}
+                    </span>
+                </div>
+                </a>
+                {% empty %}
+                <div class="p-3 text-muted text-center small">Hozircha xabarlar yo'q</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const mapData = {{ map_data_json|safe }};
+const map = L.map('map', {
+    center: [{{ map_center_lat }}, {{ map_center_lng }}],
+    zoom: {% if viloyat_filter %}11{% else %}6{% endif %},
+    preferCanvas: true
+});
+
+// Asosiy tile server — OpenStreetMap
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+    maxZoom: 19,
+    crossOrigin: true
+});
+
+// Zahira 1: Wikimedia
+const wikiLayer = L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap | Wikimedia',
+    maxZoom: 19,
+    crossOrigin: true
+});
+
+// Zahira 2: CartoDB ochiq rang (eng ishonchli)
+const cartoLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    subdomains: 'abcd',
+    maxZoom: 19,
+    crossOrigin: true
+});
+
+// Avval OSM urinib ko'ramiz, xato bo'lsa CartoDB
+osmLayer.addTo(map);
+osmLayer.on('tileerror', function() {
+    if (map.hasLayer(osmLayer)) {
+        map.removeLayer(osmLayer);
+        cartoLayer.addTo(map);
+    }
+});
+
+// Agar 3 soniya ichida tile yuklanmasa, CartoDB ga o'tamiz
+setTimeout(function() {
+    const container = document.getElementById('map');
+    const tiles = container.querySelectorAll('.leaflet-tile-loaded');
+    if (tiles.length === 0) {
+        if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+        if (map.hasLayer(wikiLayer)) map.removeLayer(wikiLayer);
+        cartoLayer.addTo(map);
+    }
+}, 3000);
+
+mapData.forEach(function(r) {
+    const icon = L.divIcon({
+        className: '',
+        html: `<div style="
+            width:14px;height:14px;background:${r.color};
+            border-radius:50%;border:2px solid rgba(0,0,0,0.4);
+            box-shadow:0 2px 6px rgba(0,0,0,0.3);
+        "></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+    });
+    const marker = L.marker([r.lat, r.lng], {icon}).addTo(map);
+    marker.bindPopup(`
+        <div style="min-width:180px;font-family:Segoe UI,sans-serif">
+            <b style="color:#0f172a">#${r.id} – ${r.waste_type}</b><br>
+            <span style="color:#64748b;font-size:12px">${r.size} hajm</span><br>
+            <small>${r.viloyat} ${r.tuman}</small><br>
+            <small style="color:#94a3b8">${r.created_at}</small><br>
+            <span style="display:inline-block;margin:4px 0;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${r.color}22;color:${r.color}">${r.status_display}</span><br>
+            <a href="${r.url}" style="font-size:12px;color:#16a34a">Ko'rish →</a>
+        </div>
+    `);
+});
+
+// Click to add report
+{% if user.is_authenticated and user.is_citizen %}
+map.on('click', function(e) {
+    const url = `/report/create/?lat=${e.latlng.lat.toFixed(6)}&lng=${e.latlng.lng.toFixed(6)}`;
+    window.location.href = url;
+});
+map.getContainer().style.cursor = 'crosshair';
+map.getContainer().title = 'Chiqindi joyini belgilash uchun bosing';
+{% endif %}
+</script>
+{% endblock %}

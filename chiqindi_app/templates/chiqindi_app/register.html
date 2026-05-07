@@ -1,0 +1,65 @@
+{% extends 'chiqindi_app/base.html' %}
+{% block title %}Ro'yxatdan o'tish – Chiqindi Platform{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-sm-10">
+        <div class="card">
+            <div class="card-header bg-success text-white text-center py-3">
+                <i class="bi bi-person-plus-fill me-2" style="font-size:1.5rem"></i>
+                <div class="fw-bold fs-5">Ro'yxatdan o'tish</div>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Ism *</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Familiya *</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Foydalanuvchi nomi *</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email *</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Telefon</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Rol *</label>
+                            {{ form.role }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Parol *</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Parolni tasdiqlang *</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 mt-3 py-2">
+                        <i class="bi bi-person-check me-2"></i>Ro'yxatdan o'tish
+                    </button>
+                </form>
+                <hr>
+                <div class="text-center">
+                    <small class="text-muted">Hisobingiz bormi?</small>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-sm ms-2">Kirish</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

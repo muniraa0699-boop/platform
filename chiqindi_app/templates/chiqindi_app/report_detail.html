@@ -1,0 +1,169 @@
+{% extends 'chiqindi_app/base.html' %}
+{% block title %}Xabar #{{ report.pk }} – Chiqindi Platform{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-file-text me-2"></i>Chiqindi xabari #{{ report.pk }}</span>
+                <span class="status-badge status-{{ report.status }}">{{ report.get_status_display }}</span>
+            </div>
+            <div class="card-body">
+                <div id="detail-map" style="height:300px;border-radius:10px;margin-bottom:1rem"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small mb-1">Chiqindi turi</div>
+                            <strong>{{ report.get_waste_type_display }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small mb-1">Hajmi</div>
+                            <strong>{{ report.get_size_display }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small mb-1">Hudud</div>
+                            <strong>{{ report.get_viloyat_display }} – {{ report.tuman }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small mb-1">Koordinatalar</div>
+                            <strong>{{ report.latitude|floatformat:4 }}, {{ report.longitude|floatformat:4 }}</strong>
+                        </div>
+                    </div>
+                    {% if report.address %}
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small mb-1">Manzil</div>
+                            <strong>{{ report.address }}</strong>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if report.description %}
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small mb-1">Izoh</div>
+                            <strong>{{ report.description }}</strong>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small mb-1">Yuboruvchi</div>
+                            <strong>{{ report.citizen.get_full_name|default:report.citizen.username }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small mb-1">Yuborilgan vaqt</div>
+                            <strong>{{ report.created_at|date:"d.m.Y H:i" }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                {% if report.image %}
+                <div class="mt-3">
+                    <img src="{{ report.image.url }}" class="img-fluid rounded" style="max-height:300px" alt="Rasm">
+                </div>
+                {% endif %}
+
+                {% if report.authority_note %}
+                <div class="alert alert-info mt-3">
+                    <strong><i class="bi bi-shield-check me-1"></i>Hokimiyat izohi:</strong>
+                    {{ report.authority_note }}
+                </div>
+                {% endif %}
+
+                <div class="mt-3 d-flex gap-2 flex-wrap">
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Orqaga</a>
+                    {% if can_edit %}
+                    <a href="{% url 'edit_report' report.pk %}" class="btn btn-warning btn-sm"><i class="bi bi-pencil me-1"></i>Tahrirlash</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Status timeline -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-activity me-2"></i>Holat tarixi</div>
+            <div class="card-body">
+                {% with statuses=report.STATUS_CHOICES %}
+                <div class="position-relative">
+                    {% for code, name in statuses %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0"
+                             style="width:32px;height:32px;
+                             background:{% if report.status == code %}#16a34a{% elif code == 'kutilmoqda' and report.status != 'kutilmoqda' %}#16a34a{% elif code == 'qabul_qilindi' and report.status in 'jarayonda,tozalanmoqda,tozalandi' %}#16a34a{% elif code == 'jarayonda' and report.status in 'tozalanmoqda,tozalandi' %}#16a34a{% elif code == 'tozalanmoqda' and report.status == 'tozalandi' %}#16a34a{% else %}#e2e8f0{% endif %};
+                             color:{% if report.status == code or code == 'kutilmoqda' or code == 'qabul_qilindi' and report.status in 'jarayonda,tozalanmoqda,tozalandi' %}white{% else %}#94a3b8{% endif %}">
+                            <i class="bi bi-check2" style="font-size:.9rem"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold" style="font-size:.9rem">{{ name }}</div>
+                            {% if report.status == code %}
+                            <div class="text-muted" style="font-size:.75rem">{{ report.updated_at|date:"d.m.Y H:i" }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endwith %}
+            </div>
+        </div>
+
+        <!-- Authority form -->
+        {% if status_form %}
+        <div class="card">
+            <div class="card-header bg-primary text-white"><i class="bi bi-shield-check me-2"></i>Holatni yangilash</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Yangi holat</label>
+                        {{ status_form.status }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mas'ul xodim</label>
+                        {{ status_form.assigned_to }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Izoh</label>
+                        {{ status_form.authority_note }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check2-circle me-1"></i>Saqlash
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const map = L.map('detail-map', {preferCanvas: true}).setView([{{ report.latitude }}, {{ report.longitude }}], 15);
+const osmD = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', crossOrigin:true});
+const cartoD = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {attribution:'© CARTO', subdomains:'abcd', crossOrigin:true});
+osmD.addTo(map);
+osmD.on('tileerror', function(){ if(map.hasLayer(osmD)){map.removeLayer(osmD); cartoD.addTo(map);} });
+setTimeout(function(){ if(document.getElementById('detail-map').querySelectorAll('.leaflet-tile-loaded').length===0){if(map.hasLayer(osmD))map.removeLayer(osmD); cartoD.addTo(map);} }, 3000);
+
+const color = '{{ report.get_marker_color }}';
+const icon = L.divIcon({
+    className: '',
+    html: `<div style="width:20px;height:20px;background:${color};border-radius:50%;border:3px solid rgba(0,0,0,0.4);box-shadow:0 3px 10px rgba(0,0,0,0.3)"></div>`,
+    iconSize: [20, 20], iconAnchor: [10, 10]
+});
+L.marker([{{ report.latitude }}, {{ report.longitude }}], {icon}).addTo(map)
+  .bindPopup('<b>{{ report.get_waste_type_display }}</b><br>{{ report.get_status_display }}').openPopup();
+</script>
+{% endblock %}
